@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic File Gallery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #6b7280;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --hover-color: #e5e7eb;
+        }
+
+        body {
+            background-color: var(--background-color);
+        }
+
+        .file-item, .file-card {
+            opacity: 0;
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-list {
+            display: none;
+        }
+
+        .file-list.active {
+            display: block;
+        }
+
+        .file-grid {
+            display: none;
+        }
+
+        .file-grid.active {
+            display: grid;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800">
+    <div class="container mx-auto px-4 py-8">
+        <div class="header flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-500">File Gallery</h1>
+            <div class="view-toggle flex space-x-2">
+                <button id="listViewBtn" class="view-btn bg-white border border-gray-300 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition duration-300" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+                <button id="gridViewBtn" class="view-btn bg-blue-500 text-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 active" title="Grid View">
+                    <i class="fas fa-th-large"></i>
+                </button>
+            </div>
+        </div>
+        <div id="loadingSpinner" class="loading-spinner hidden"></div>
+        <ul id="fileListView" class="file-list"></ul>
+        <div id="fileGridView" class="file-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 active"></div>
+    </div>
+
+    <script>
+        const jsonData = [
+            {
+                "name": "2.jpg",
+                "type": "file",
+                "size": 70598,
+                "lastModified": "2025-09-10T11:36:00.000Z"
+            },
+            {
+                "name": "3.jpg",
+                "type": "file",
+                "size": 54049,
+                "lastModified": "2025-09-10T11:36:00.000Z"
+            },
+            {
+                "name": "4.jpg",
+                "type": "file",
+                "size": 72340,
+                "lastModified": "2025-09-10T11:36:00.000Z"
+            },
+            {
+                "name": "mgh-policies.html",
+                "type": "file",
+                "size": 4406,
+                "lastModified": "2025-09-09T08:45:00.000Z"
+            },
+            {
+                "name": "mgh.jpg",
+                "type": "file",
+                "size": 1300002,
+                "lastModified": "2025-08-27T11:13:00.000Z"
+            },
+            {
+                "name": "old.txt",
+                "type": "file",
+                "size": 13695,
+                "lastModified": "2025-09-15T03:14:00.000Z"
+            },
+            {
+                "name": "private",
+                "type": "directory",
+                "size": null,
+                "lastModified": "2025-09-18T08:34:00.000Z"
+            },
+            {
+                "name": "test-api.html",
+                "type": "file",
+                "size": 3782,
+                "lastModified": "2025-09-18T08:16:00.000Z"
+            },
+            {
+                "name": "User Manual-Admission (1).pdf",
+                "type": "file",
+                "size": 3075459,
+                "lastModified": "2023-08-10T05:24:00.000Z"
+            },
+            {
+                "name": "web.config",
+                "type": "file",
+                "size": 168,
+                "lastModified": "2025-09-18T07:32:00.000Z"
+            }
+        ];
+
+        const fileListView = document.getElementById('fileListView');
+        const fileGridView = document.getElementById('fileGridView');
+        const listViewBtn = document.getElementById('listViewBtn');
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === null || bytes === undefined) return 'N/A';
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function getFileIconClass(file) {
+            if (file.type === 'directory') return 'fa-solid fa-folder';
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            const extensionMap = {
+                'jpg': 'fa-solid fa-image',
+                'jpeg': 'fa-solid fa-image',
+                'png': 'fa-solid fa-image',
+                'gif': 'fa-solid fa-image',
+                'svg': 'fa-solid fa-image',
+                'html': 'fa-solid fa-file-code',
+                'htm': 'fa-solid fa-file-code',
+                'php': 'fa-solid fa-file-code',
+                'js': 'fa-solid fa-file-code',
+                'css': 'fa-solid fa-file-code',
+                'txt': 'fa-solid fa-file-alt',
+                'log': 'fa-solid fa-file-alt',
+                'pdf': 'fa-solid fa-file-pdf',
+                'config': 'fa-solid fa-file-cog'
+            };
+            return extensionMap[fileExtension] || 'fa-solid fa-file';
+        }
+
+        async function renderFiles() {
+            loadingSpinner.classList.remove('hidden');
+            fileListView.innerHTML = '';
+            fileGridView.innerHTML = '';
+
+            // Simulate loading delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            jsonData.forEach((file, index) => {
+                const iconClass = getFileIconClass(file);
+                const size = formatBytes(file.size);
+                const modifiedDate = new Date(file.lastModified).toLocaleDateString();
+
+                // Generate List View Item
+                const listItem = document.createElement('li');
+                listItem.className = 'file-item flex justify-between items-center p-4 border-b border-gray-200 hover:bg-gray-100 transition duration-300';
+                listItem.style.animationDelay = `${index * 0.1}s`;
+                listItem.innerHTML = `
+                    <div class="flex items-center flex-grow">
+                        <span class="file-icon text-2xl text-gray-500 mr-4"><i class="${iconClass}"></i></span>
+                        <div class="file-info">
+                            <span class="file-name font-semibold text-lg">${file.name}</span>
+                            <div class="file-metadata flex space-x-4 text-sm text-gray-500">
+                                <span>Size: ${size}</span>
+                                <span>Modified: ${modifiedDate}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions flex space-x-2">
+                        <a href="/preview/${encodeURIComponent(file.name)}" target="_blank" class="action-icon preview text-gray-500 hover:text-blue-500 transition duration-300" title="Preview">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="/download/${encodeURIComponent(file.name)}" class="action-icon download text-blue-500 hover:text-blue-700 transition duration-300" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                `;
+                fileListView.appendChild(listItem);
+
+                // Generate Grid View Card
+                const gridCard = document.createElement('div');
+                gridCard.className = 'file-card bg-white rounded-xl shadow-md p-6 flex flex-col items-center hover:shadow-lg hover:-translate-y-1 transition duration-300';
+                gridCard.style.animationDelay = `${index * 0.1}s`;
+                gridCard.innerHTML = `
+                    <span class="file-icon text-4xl text-gray-500 mb-4"><i class="${iconClass}"></i></span>
+                    <span class="file-name font-semibold text-base text-center truncate w-full">${file.name}</span>
+                    <div class="file-metadata flex justify-center text-sm text-gray-500 mt-2">
+                        <span>${size}</span>
+                    </div>
+                    <div class="file-actions flex space-x-2 mt-4">
+                        <a href="/preview/${encodeURIComponent(file.name)}" target="_blank" class="action-icon preview text-gray-500 hover:text-blue-500 transition duration-300" title="Preview">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="/download/${encodeURIComponent(file.name)}" class="action-icon download text-blue-500 hover:text-blue-700 transition duration-300" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                `;
+                fileGridView.appendChild(gridCard);
+            });
+
+            loadingSpinner.classList.add('hidden');
+        }
+
+        // View Toggling Logic
+        listViewBtn.addEventListener('click', () => {
+            fileListView.classList.add('active');
+            fileGridView.classList.remove('active');
+            listViewBtn.classList.add('active', 'bg-blue-500', 'text-white');
+            gridViewBtn.classList.remove('active', 'bg-blue-500', 'text-white');
+        });
+
+        gridViewBtn.addEventListener('click', () => {
+            fileListView.classList.remove('active');
+            fileGridView.classList.add('active');
+            listViewBtn.classList.remove('active', 'bg-blue-500', 'text-white');
+            gridViewBtn.classList.add('active', 'bg-blue-500', 'text-white');
+        });
+
+        // Initial render
+        renderFiles();
+    </script>
+</body>
+</html>

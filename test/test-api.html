@@ -1,0 +1,63 @@
+<html>
+
+<head>
+    <title>172.18.11.138 - /test/</title>
+</head>
+
+<body>
+    <H1>172.18.11.138 - /test/</H1>
+    <script>
+  // Input HTML string
+  const data = `<html><head><title>172.18.11.138 - /test/</title></head><body><H1>172.18.11.138 - /test/</H1><hr>
+<pre><A HREF="/">[To Parent Directory]</A><br><br> 9/10/2025  5:06 PM        70598 <A HREF="/test/2.jpg">2.jpg</A><br> 9/10/2025  5:06 PM        54049 <A HREF="/test/3.jpg">3.jpg</A><br> 9/10/2025  5:06 PM        72340 <A HREF="/test/4.jpg">4.jpg</A><br>  9/9/2025  2:15 PM         4406 <A HREF="/test/mgh-policies.html">mgh-policies.html</A><br> 8/27/2025  4:43 PM      1300002 <A HREF="/test/mgh.jpg">mgh.jpg</A><br> 9/15/2025  8:44 AM        13695 <A HREF="/test/old.txt">old.txt</A><br> 9/18/2025  2:04 PM        &lt;dir&gt; <A HREF="/test/private/">private</A><br> 9/18/2025  1:46 PM         3782 <A HREF="/test/test-api.html">test-api.html</A><br> 8/10/2023 10:54 AM      3075459 <A HREF="/test/User%20Manual-Admission%20(1).pdf">User Manual-Admission (1).pdf</A><br> 9/18/2025  1:02 PM          168 <A HREF="/test/web.config">web.config</A><br></pre><hr></body></html>`;
+
+  // Function to convert HTML to JSON
+  function htmlToJson(htmlString) {
+    // Create a DOM parser to parse the HTML string
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+
+    // Get the <pre> element content
+    const preElement = doc.querySelector('pre');
+    if (!preElement) {
+      return { error: 'No directory listing found' };
+    }
+
+    // Split the content into lines and filter out empty lines or parent directory link
+    const lines = preElement.innerHTML
+      .split('<br>')
+      .map(line => line.trim())
+      .filter(line => line && !line.includes('[To Parent Directory]'));
+
+    // Initialize result array
+    const result = [];
+
+    // Regular expression to match both files and directories
+    // Format: "MM/DD/YYYY HH:MM AM/PM    size-or-<dir>    <A HREF="...">name</A>"
+    const regex = /^\s*(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s+[AP]M)\s+(&lt;dir&gt;|\d+)\s+<A\s+HREF="[^"]+">([^<]+)<\/A>/i;
+
+    lines.forEach(line => {
+      const match = line.match(regex);
+      if (match) {
+        const [_, lastModified, sizeOrDir, name] = match;
+        result.push({
+          name: name,
+          type: sizeOrDir === '&lt;dir&gt;' ? 'directory' : 'file',
+          size: sizeOrDir === '&lt;dir&gt;' ? null : parseInt(sizeOrDir),
+          lastModified: new Date(lastModified).toISOString()
+        });
+      }
+    });
+
+    return result;
+  }
+
+  // Convert the HTML to JSON
+  const jsonOutput = htmlToJson(data);
+
+  // Output the JSON
+  console.log(JSON.stringify(jsonOutput, null, 2));
+</script>
+</body>
+
+</html>

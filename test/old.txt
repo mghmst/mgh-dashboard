@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mahatma Gandhi Hospital</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{
+      --max-width:1200px;
+      --primary:#004080;
+      --card-bg:#ffffff;
+      --body-bg:#f3f6f9;
+    }
+
+    *{box-sizing:border-box}
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      margin:0;
+      background:var(--body-bg);
+      color:#222;
+    }
+
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:12px 16px;
+    }
+    .header-content{
+      max-width:var(--max-width);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .logo{ width:80px; height:auto; display:block}
+    .header-text h1{ margin:0; font-size:1.4rem; letter-spacing:0.5px}
+    .header-text p{ margin:2px 0 0; font-size:0.95rem; opacity:0.9 }
+
+    .banner{ max-width:var(--max-width); margin:18px auto; padding:0 2px }
+    .banner img{ width:100%; max-height:180px; object-fit:cover; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.12) }
+
+    .content{
+      max-width:var(--max-width);
+      margin:18px auto;
+      background:var(--card-bg);
+      padding:18px;
+      border-radius:10px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    }
+    .content h2{ color:var(--primary); margin:0 0 8px; font-size:1.1rem }
+
+    .favourite-links { margin-top:18px }
+    .favourite-links h3 { margin:0 0 10px; font-size:1rem; color:#0b3a66 }
+
+    .fav-list {
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      list-style:none;
+      padding:0;
+      margin:0;
+    }
+
+    .fav-item {
+      width:calc(33.333% - 8px);
+      min-width:170px;
+      background:#fff;
+      border-radius:10px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.05);
+      padding:12px;
+    }
+
+    .fav-link {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:8px;
+      color:#fff;
+      text-decoration:none;
+      font-weight:600;
+      box-shadow:0 4px 10px rgba(0,0,0,0.08);
+      width:100%;
+      justify-content:flex-start;
+    }
+    .fav-link .icon {
+      width:34px; height:34px; border-radius:6px; background:rgba(255,255,255,0.12);
+      display:flex; align-items:center; justify-content:center; font-size:14px;
+    }
+
+    .desc {
+      margin-top:8px;
+      font-size:0.9rem;
+      color:#333;
+      line-height:1.3;
+    }
+
+    .c-blue{ background: linear-gradient(180deg,#007bff,#0062d6) }
+    .c-green{ background: linear-gradient(180deg,#28a745,#1f8b3b) }
+    .c-red{ background: linear-gradient(180deg,#dc3545,#c1272d) }
+    .c-orange{ background: linear-gradient(180deg,#ff8c42,#f46b2b) }
+    .c-purple{ background: linear-gradient(180deg,#6f42c1,#5930a6) }
+    .c-teal{ background: linear-gradient(180deg,#20c997,#12a57f) }
+    .c-gray{ background: linear-gradient(180deg,#6c757d,#545b60) }
+
+    /* Accreditation Section Styles */
+    .accreditations-section {
+      max-width: var(--max-width);
+      margin: 18px auto;
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+    
+    .accreditations-section h2 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+    
+    .accreditations {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .accreditation-card {
+      flex: 1;
+      min-width: 180px;
+      max-width: 220px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .accreditation-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    
+    .card-img {
+      height: 140px;
+      background-color: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      border-bottom: 1px solid #eaeaea;
+    }
+    
+    .card-img img {
+      max-width: 100%;
+      max-height: 110px;
+      object-fit: contain;
+    }
+    
+    .card-content {
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .card-content h3 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    @media (max-width:900px){
+      .fav-item{ width:calc(50% - 8px) }
+    }
+    @media (max-width:768px){
+      .accreditations {
+        flex-wrap: wrap;
+      }
+      .accreditation-card {
+        min-width: 140px;
+        max-width: 160px;
+      }
+      .card-img {
+        height: 120px;
+      }
+      .card-img img {
+        max-height: 90px;
+      }
+      .card-content h3 {
+        font-size: 0.9rem;
+      }
+    }
+    @media (max-width:520px){
+      .fav-item{ width:100% }
+      .accreditation-card {
+        min-width: 120px;
+        max-width: 140px;
+      }
+      .card-img {
+        height: 100px;
+        padding: 10px;
+      }
+      .card-img img {
+        max-height: 80px;
+      }
+      .card-content {
+        padding: 8px;
+      }
+      .card-content h3 {
+        font-size: 0.85rem;
+      }
+    }
+
+    footer {
+      text-align: center;
+      padding: 12px;
+      color: #fff;
+      background: var(--primary);
+      margin-top: 18px;
+      font-weight: bold;
+      border-radius: 0; 
+    }
+
+    .footer-top {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      font-weight: normal;
+    }
+
+    .footer-left {
+      text-align: left;
+      font-weight: bold;
+    }
+
+    .footer-right {
+      text-align: right;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <img src="logo.jpg" alt="MGH Logo" class="logo" />
+      <div class="header-text">
+        <h1>Mahatma Gandhi Medical College & Hospital</h1>
+        <!-- <p>Your Health — Our Priority</p> -->
+      </div>
+    </div>
+  </header>
+
+  <!-- <div class="banner"> -->
+    <!-- <img src="banner.jpg" alt="Hospital Banner" /> -->
+  <!-- </div> -->
+
+  <!-- Accreditation Section -->
+  <div class="accreditations-section">
+    <h2>Mahatma Gandhi Hospital Accreditations & Certifications</h2>
+    
+    <div class="accreditations">
+      <div class="accreditation-card">
+        <div class="card-img">
+          <img src="5.jpg" alt="Joint Commission International">
+        </div>
+        <div class="card-content">
+          <h3>Joint Commission International</h3>
+        </div>
+      </div>
+      
+      <div class="accreditation-card">
+        <div class="card-img">
+          <img src="1.jpg" alt="NABH Certified">
+        </div>
+        <div class="card-content">
+          <h3>NABH Certified</h3>
+        </div>
+      </div>
+      
+      <div class="accreditation-card">
+        <div class="card-img">
+          <img src="2.jpg" alt="NABH Accredited">
+        </div>
+        <div class="card-content">
+          <h3>NABH Accredited</h3>
+        </div>
+      </div>
+      
+      <div class="accreditation-card">
+        <div class="card-img">
+          <img src="3.jpg" alt="NABL Certified">
+        </div>
+        <div class="card-content">
+          <h3>NABL Certified</h3>
+        </div>
+      </div>
+      
+      <div class="accreditation-card">
+        <div class="card-img">
+          <img src="4.jpg" alt="NABH Accredited Hospital">
+        </div>
+        <div class="card-content">
+          <h3>NABH Accredited Hospital</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="favourite-links">
+      <ul class="fav-list">
+        <li class="fav-item">
+          <a class="fav-link c-blue" href="http://172.16.16.16:8090/httpclient.html" target="_blank">
+            <span class="label">Internet Login</span>
+          </a>
+          <p class="desc">Enter your User ID and Passowrd to Login Internet </p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-green" href="http://172.18.4.164/his/" target="_blank">
+            <span class="label">HIMS_Web</span>
+          </a>
+          <p class="desc">HIS Demo Potal</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-red" href="https://pacs.mgumst.org:7006/dicom/login.htm" target="_blank">
+            <span class="label">Suvarna PACS</span>
+          </a>
+          <p class="desc">Radiology PACS system to view images and reports.</p>
+        </li>
+       
+        <li class="fav-item">
+          <a class="fav-link c-purple" href="https://mgumst.doctor9.com/" target="_blank">
+            <span class="label">OP EMR</span>
+          </a>
+          <p class="desc">Outpatient EMR for OP slots and doctor notes.</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-teal" href="http://dms.mgumst.org:50/" target="_blank"> 
+            <span class="label">DMS (Document Management System) </span>
+          </a>
+          <p class="desc">To upload Patient's Medical Records.</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-orange" href="https://erp.mgumst.org/#/" target="_blank">
+            <span class="label">University ERP</span>
+          </a>
+          <p class="desc">University ERP - Students Life Cycle Management, Fees</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-gray" href="https://erp.mgumst.org/payroll/home.aspx" target="_blank">
+            <span class="label">HR & Payroll</span>
+          </a>
+          <p class="desc">Portal for Employee information.</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-blue" href="http://labreports.mgumst.org:7010/onlineLabReports/Default.aspx" target="_blank">
+            <span class="label">Patient Reports</span>
+          </a>
+          <p class="desc">Online lab reports — patients can access test results.</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-purple" href="http://172.16.8.231/ST-MGH-Jaipur/Login.aspx" target="_blank">
+            <span class="label">Blood_Bank</span>
+          </a>
+          <p class="desc">Core Blood Bank System.</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-orange" href="http://172.16.8.231/ST-MGH-Jaipur-Bots/BSM/BSM_Login.aspx" target="_blank">
+            <span class="label">Blood_Bank_Wards</span>
+          </a>
+          <p class="desc">Blod Bank Maangement System for Nursing Staff.</p>
+        </li>
+
+        <li class="fav-item">
+          <a class="fav-link c-red" href="mgh-policies.html" target="_blank"> 
+            <span class="label">MGH Policies</span>
+          </a>
+          <p class="desc"> Work in Progress </p>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-teal" href="IT_login.html" target="_blank"> 
+            <span class="label">IT_Services</span>
+          </a>
+          <p class="desc"> Only for IT Department </p>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-orange" href="http://172.16.8.253:7002/ " target="_blank">
+            <span class="label">Koha_Staff</span>
+          </a>
+          <p class="desc">Central Library Software for Staff</p>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-gray" href="http://centrallibrary.mgumst.org:7001/" target="_blank">
+            <span class="label">Koha OPAC</span>
+          </a>
+          <p class="desc">Central Library Software for Users</p>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-blue" href="https://mgmch.medblaze.com/workflow/login " target="_blank">
+            <span class="label">Medblaze</span>
+          </a>
+          <p class="desc">QMS</p>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-green" href="http://e-sangrah.mgumst.org:7003/jspui/ " target="_blank">
+            <span class="label">Dspace</span>
+          </a>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-red" href="http://172.16.8.248:8082" target="_blank">
+            <span class="label">Onco Collect</span>
+          </a>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-orange" href="http://172.16.8.249/charak/Security/LoginMainPage.aspx" target="_blank">
+            <span class="label">Charak</span>
+          </a>
+        </li>
+		
+        <li class="fav-item">
+          <a class="fav-link c-teal" href="http://172.18.11.162:5000/index.cgi?auth_key=876043789#/signin  " target="_blank">
+            <span class="label">Synology</span>
+          </a>
+          <p class="desc">Bachup & Storage</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      I.T. Department, MGUMST
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-left">For Software Support Call on : 116, 124</div>
+      <div class="footer-right">For Hardware Support Call on : 142, 137</div>
+    </div>
+  </footer>
+</body>
+</html>

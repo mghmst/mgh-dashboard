@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic File Gallery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #004080;
+            --secondary-color: #6b7280;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --hover-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            background: var(--background-color);
+            color: #222;
+            scroll-behavior: smooth;
+        }
+
+        header {
+            background: linear-gradient(135deg, #005566, #004080);
+            color: #fff;
+            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            width: auto;
+            height: 50px;
+            display: block;
+        }
+
+        .file-item,
+        .file-card {
+            opacity: 0;
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .file-list {
+            display: none;
+        }
+
+        .file-list.active {
+            display: block;
+        }
+
+        .file-grid {
+            display: none;
+        }
+
+        .file-grid.active {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .error-message,
+        .no-results {
+            color: #dc2626;
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .search-input {
+            padding-right: 2.5rem;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--secondary-color);
+        }
+
+        .clear-search:hover {
+            color: var(--primary-color);
+        }
+
+        .file-preview-img {
+            max-width: 100%;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 640px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header {
+                padding: 8px 12px;
+            }
+
+            .logo {
+                height: 32px;
+            }
+
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .header.flex {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+
+            .search-input {
+                font-size: 0.9rem;
+                padding: 0.5rem;
+            }
+
+            .view-toggle {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .view-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .file-grid.active {
+                grid-template-columns: 1fr;
+            }
+
+            .file-card {
+                padding: 1rem;
+            }
+
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            .file-item .file-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .file-name {
+                font-size: 0.95rem;
+            }
+
+            .file-metadata {
+                flex-direction: column;
+                gap: 0.25rem;
+                font-size: 0.85rem;
+            }
+
+            .file-icon {
+                font-size: 1.5rem;
+            }
+
+            h1.text-3xl {
+                font-size: 1.5rem;
+            }
+
+            .file-preview-img {
+                max-height: 80px;
+            }
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-800">
+    <header>
+        <div class="header-content">
+            <img src="https://www.mgumst.org/assets/images/site_logo.webp"  alt="MGH Logo" class="logo" />
+        </div>
+    </header>
+
+    
+    <div class="container mx-auto px-4 py-8">
+        <div class="header flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+            <h1 class="text-3xl font-bold text-blue-500" id="foderName">File Gallery</h1>
+            <div class="flex items-center space-x-4">
+                <div class="search-container">
+                    <input id="searchInput" type="text"
+                        class="search-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Search files...">
+                    <i id="clearSearch" class="fas fa-times clear-search hidden"></i>
+                </div>
+                <div class="view-toggle flex space-x-2">
+                    <button id="listViewBtn"
+                        class="view-btn bg-white border border-gray-300 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition duration-300"
+                        title="List View">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button id="gridViewBtn"
+                        class="view-btn bg-blue-500 text-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 active"
+                        title="Grid View">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="loadingSpinner" class="loading-spinner"></div>
+        <div id="errorMessage" class="error-message hidden"></div>
+        <div id="noResults" class="no-results hidden">No files found matching your search.</div>
+        <ul id="fileListView" class="file-list"></ul>
+        <div id="fileGridView"
+            class="file-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 active"></div>
+    </div>
+
+    <script>
+        const fileListView = document.getElementById('fileListView');
+        const fileGridView = document.getElementById('fileGridView');
+        const listViewBtn = document.getElementById('listViewBtn');
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const noResults = document.getElementById('noResults');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearch = document.getElementById('clearSearch');
+        let jsonData = [];
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === null || bytes === undefined) return 'N/A';
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function getFileIconClass(file) {
+            if (file.type === 'directory') return 'fa-solid fa-folder';
+            const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+            const extensionMap = {
+                'pdf': 'fa-solid fa-file-pdf',
+                'html': 'fa-solid fa-file-code',
+                'htm': 'fa-solid fa-file-code',
+                'php': 'fa-solid fa-file-code',
+                'js': 'fa-solid fa-file-code',
+                'css': 'fa-solid fa-file-code',
+                'txt': 'fa-solid fa-file-alt',
+                'log': 'fa-solid fa-file-alt',
+                'config': 'fa-solid fa-file-cog'
+            };
+            return extensionMap[fileExtension] || 'fa-solid fa-file';
+        }
+
+        function getFilePreview(file, baseUrl) {
+            const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+            if (imageExtensions.includes(fileExtension)) {
+                return `<img src="${encodeURI(baseUrl + '/' + file.name)}" height="50" width="50"class="file-preview-img" alt="${file.name}" />`;
+            } else {
+                const iconClass = getFileIconClass(file);
+                return `<span class="file-icon text-2xl text-gray-500"><i class="${iconClass}"></i></span>`;
+            }
+        }
+
+        function htmlToJson(htmlString) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlString, 'text/html');
+                const preElement = doc.querySelector('pre');
+                if (!preElement) {
+                    throw new Error('No directory listing found in HTML');
+                }
+
+                const lines = preElement.innerHTML
+                    .split('<br>')
+                    .map(line => line.trim())
+                    .filter(line => line && !line.includes('[To Parent Directory]'));
+
+                const result = [];
+                const regex = /^\s*(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s+[AP]M)\s+(&lt;dir&gt;|\d+)\s+<A\s+HREF="[^"]+">([^<]+)<\/A>/i;
+
+                lines.forEach(line => {
+                    const match = line.match(regex);
+                    if (match) {
+                        const [_, lastModified, sizeOrDir, name] = match;
+                        const parsedDate = new Date(lastModified);
+                        if (isNaN(parsedDate.getTime())) {
+                            console.warn(`Invalid date format for line: ${line}`);
+                            return;
+                        }
+                        result.push({
+                            name: name,
+                            type: sizeOrDir === '&lt;dir&gt;' ? 'directory' : 'file',
+                            size: sizeOrDir === '&lt;dir&gt;' ? null : parseInt(sizeOrDir, 10),
+                            lastModified: parsedDate.toISOString()
+                        });
+                    }
+                });
+
+                if (result.length === 0) {
+                    throw new Error('No valid file entries parsed from HTML');
+                }
+                return result;
+            } catch (error) {
+                throw new Error(`HTML parsing error: ${error.message}`);
+            }
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        async function renderFiles(data, baseUrl) {
+            loadingSpinner.classList.remove('hidden');
+            noResults.classList.add('hidden');
+            fileListView.innerHTML = '';
+            fileGridView.innerHTML = '';
+
+            if (data.length === 0) {
+                loadingSpinner.classList.add('hidden');
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            data.forEach((file, index) => {
+                const size = formatBytes(file.size);
+                const modifiedDate = new Date(file.lastModified).toLocaleDateString();
+                const previewContent = getFilePreview(file, baseUrl);
+
+                const listItem = document.createElement('li');
+                listItem.className = 'file-item flex justify-between items-center p-4 border-b border-gray-200 hover:bg-gray-100 transition duration-300';
+                listItem.style.animationDelay = `${index * 0.1}s`;
+                listItem.innerHTML = `
+                    <div class="flex items-center flex-grow">
+                        ${previewContent}
+                        <div class="file-info ml-4">
+                            <span class="file-name font-semibold text-lg">${file.name}</span>
+                            <div class="file-metadata flex space-x-4 text-sm text-gray-500">
+                                <span>Size: ${size}</span>
+                                <span>Modified: ${modifiedDate}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions flex space-x-2">
+                        <a href="${encodeURI(baseUrl + '/' + file.name)}" target="_blank" class="action-icon preview text-gray-500 hover:text-blue-500 transition duration-300" title="Preview">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="${encodeURI(baseUrl + '/' + file.name)}" class="action-icon download text-blue-500 hover:text-blue-700 transition duration-300" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                `;
+                fileListView.appendChild(listItem);
+
+                const gridCard = document.createElement('div');
+                gridCard.className = 'file-card bg-white rounded-xl shadow-md p-6 flex flex-col items-center hover:shadow-lg hover:-translate-y-1 transition duration-300';
+                gridCard.style.animationDelay = `${index * 0.1}s`;
+                gridCard.innerHTML = `
+                    ${previewContent.replace('text-2xl', 'text-4xl').replace('ml-4', 'mb-4')}
+                    <span class="file-name font-semibold text-base text-center truncate w-full">${file.name}</span>
+                    <div class="file-metadata flex justify-center text-sm text-gray-500 mt-2">
+                        <span>${size}</span>
+                    </div>
+                    <div class="file-actions flex space-x-2 mt-4">
+                        <a href="${encodeURI(baseUrl + '/' + file.name)}" target="_blank" class="action-icon preview text-gray-500 hover:text-blue-500 transition duration-300" title="Preview">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="${encodeURI(baseUrl + '/' + file.name)}" class="action-icon download text-blue-500 hover:text-blue-700 transition duration-300" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                `;
+                fileGridView.appendChild(gridCard);
+            });
+
+            loadingSpinner.classList.add('hidden');
+        }
+
+        async function fetchAndRenderFiles() {
+            loadingSpinner.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            noResults.classList.add('hidden');
+            fileListView.innerHTML = '';
+            fileGridView.innerHTML = '';
+
+            const params = new URLSearchParams(window.location.search);
+            const url = params.get('url');
+
+            if (!url) {
+                loadingSpinner.classList.add('hidden');
+                errorMessage.classList.remove('hidden');
+                errorMessage.textContent = 'Error: No URL provided in query parameters';
+                return;
+            }
+
+            let foderName = document.getElementById('foderName')
+            foderName.innerText = `Foder: ${url.split('/').pop()}`
+
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const htmlText = await response.text();
+                jsonData = htmlToJson(htmlText);
+                jsonData = jsonData.filter(i => i.name !== 'web.config');
+                await renderFiles(jsonData, url);
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                errorMessage.classList.remove('hidden');
+                errorMessage.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        const debouncedSearch = debounce((query, baseUrl) => {
+            const filteredData = jsonData.filter(file =>
+                file.name.toLowerCase().includes(query.toLowerCase())
+            );
+            renderFiles(filteredData, baseUrl);
+        }, 300);
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.trim();
+            const params = new URLSearchParams(window.location.search);
+            const baseUrl = params.get('url') || '';
+            clearSearch.classList.toggle('hidden', !query);
+            debouncedSearch(query, baseUrl);
+        });
+
+        clearSearch.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearch.classList.add('hidden');
+            const params = new URLSearchParams(window.location.search);
+            const baseUrl = params.get('url') || '';
+            renderFiles(jsonData, baseUrl);
+        });
+
+        listViewBtn.addEventListener('click', () => {
+            fileListView.classList.add('active');
+            fileGridView.classList.remove('active');
+            listViewBtn.classList.add('active', 'bg-blue-500', 'text-white');
+            gridViewBtn.classList.remove('active', 'bg-blue-500', 'text-white');
+        });
+
+        gridViewBtn.addEventListener('click', () => {
+            fileListView.classList.remove('active');
+            fileGridView.classList.add('active');
+            listViewBtn.classList.remove('active', 'bg-blue-500', 'text-white');
+            gridViewBtn.classList.add('active', 'bg-blue-500', 'text-white');
+        });
+
+        fetchAndRenderFiles();
+    </script>
+</body>
+
+</html>
